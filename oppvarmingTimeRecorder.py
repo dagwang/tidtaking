@@ -26,7 +26,7 @@ startinput = sg.Input()
 
 layout = [[sg.Text("Skriv inn startnummer   (F1 tar tid)")],
           [startinput],
-          [text_elem],
+          #[text_elem],
           [sg.Button("Avslutt")]]
 
 window = sg.Window("Keyboard Test", layout,  return_keyboard_events=True, use_default_focus=True)
@@ -35,7 +35,7 @@ window = sg.Window("Keyboard Test", layout,  return_keyboard_events=True, use_de
 while True:
     event, value = window.Read()
 
-    text_elem.Update(event)
+    # text_elem.Update(event)
     print(event, ord(event[0]) , value)
     print(text_elem.DisplayText)
     #if text_elem.DisplayText == 'F1:112':
