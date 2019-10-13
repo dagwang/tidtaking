@@ -20,31 +20,34 @@ def getrunner(startno):
 
 print(getrunner(48))
 
-# Recipe for getting keys, one at a time as they are released
-# If want to use the space bar, then be sure and disable the "default focus"
 
 text_elem = sg.Text("", size=(18, 1))
+startinput = sg.Input()
 
-layout = [[sg.Text("Press a key or scroll mouse")],
-          [sg.Input(), sg.FileBrowse()],
+layout = [[sg.Text("Skriv inn startnummer   (F1 tar tid)")],
+          [startinput],
           [text_elem],
-          [sg.Button("OK")]]
+          [sg.Button("Avslutt")]]
 
-window = sg.Window("Keyboard Test", layout,  return_keyboard_events=True, use_default_focus=False)
+window = sg.Window("Keyboard Test", layout,  return_keyboard_events=True, use_default_focus=True)
 
 # ---===--- Loop taking in user input --- #
 while True:
     event, value = window.Read()
-    loper = getrunner(value[1])
-    print(loper)
+
     text_elem.Update(event)
-    print(value)
+    print(event, ord(event[0]) , value)
     print(text_elem.DisplayText)
-    if text_elem.DisplayText == 'F1:112':
+    #if text_elem.DisplayText == 'F1:112':
+    if event == 'F1:112':
         now = datetime.datetime.now()
         time_string = now.strftime("%H:%M:%S")
         print(time_string)
-    if event == "OK" or event is None:
+    if ord(event[0]) == 13:
+        loper = getrunner(value[0])
+        startinput.update('')
+        print(loper)
+    if event == "Avslutt" or event is None:
         print(event, "exiting")
         break
 
