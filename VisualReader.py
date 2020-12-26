@@ -1,20 +1,22 @@
 import sys
 
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt, pyqtSignal, QThread
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
 from tag_reader import *
 
 
-class ConnectedReader(QWidget):
+class ConnectedReader(QThread, QWidget):
 
     tag_info = pyqtSignal(dict)
 
     def __init__(self):
         super().__init__()
         rm = ReaderManager()
-        reader = rm.connect_first()
-        for ii in range(2):
-            info = reader.read_tag_when_available()
+        self.reader = rm.connect_first()
+
+    def run(self):
+        while 1:
+            info = self.reader.read_tag_when_available()
             self.tag_info.emit(info)
 
 
@@ -24,6 +26,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.reader = ConnectedReader()
         self.reader.tag_info.connect(self.custom_slot)
+        self.reader.start()
 
     def custom_slot(self, a):
         print(a)

@@ -3,12 +3,12 @@ import serial.tools.list_ports
 import time
 import datetime
 import re
-from PyQt5 import QtCore
+#from PyQt5 import QtCore
 # Class for EMIT tag readers (ETS, ECU, ECB)
 # Documentation: https://www.emit.no/wp-content/uploads/2020/06/pc-protocol_1.1.pdf
 
 
-class TagReader(QtCore.QThread):
+class TagReader():
     def __init__(self, comport):
         super().__init__()
         self.port = serial.Serial(comport, 115200, timeout=5)
