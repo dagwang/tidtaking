@@ -4,7 +4,7 @@ from PyQt5.QtGui import QStandardItemModel
 from PyQt5.QtSql import QSqlDatabase, QSqlQueryModel, QSqlQuery, QSqlTableModel
 from PyQt5.QtCore import Qt, pyqtSignal, QThread
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QDataWidgetMapper, QFormLayout, QVBoxLayout, \
-    QLineEdit, QPushButton, QHBoxLayout, QMessageBox, QInputDialog
+    QLineEdit, QPushButton, QHBoxLayout, QMessageBox, QInputDialog, QAction
 from tag_reader import *
 
 SERVER_NAME = 'GETAC\SQLEXPRESS'
@@ -40,6 +40,14 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
+        menu = self.menuBar()
+
+        database_menu = menu.addMenu("&Database")
+        ECU_menu = menu.addMenu("&Brikkeleser")
+        set_code_action = QAction("&Sett brikkelserkode",self)
+        set_code_action.triggered.connect(self.set_code)
+        ECU_menu.addAction(set_code_action)
+
         self.tag_label = QLabel()
         self.reader = ConnectedReader()
         self.reader.tag_info.connect(self.custom_slot)
@@ -122,6 +130,9 @@ class MainWindow(QMainWindow):
 
     def custom_slot2(self, a):
         print(a)
+
+    def set_code(self):
+        print('Write code to set ECU code')
 
 
 
