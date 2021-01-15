@@ -2,20 +2,13 @@ import sys
 
 from PyQt5.QtGui import QStandardItemModel
 from PyQt5.QtSql import QSqlDatabase, QSqlQueryModel, QSqlQuery, QSqlTableModel
-from PyQt5.QtCore import Qt, pyqtSignal, QThread
+from PyQt5.QtCore import Qt, pyqtSignal, QThread, QSize
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QDataWidgetMapper, QFormLayout, QVBoxLayout, \
-    QLineEdit, QPushButton, QHBoxLayout, QMessageBox, QInputDialog, QAction
+    QLineEdit, QPushButton, QHBoxLayout, QMessageBox, QInputDialog, QAction, QStatusBar, QComboBox
 from tag_reader import *
 
-SERVER_NAME = 'GETAC\SQLEXPRESS'
-DATABASE_NAME = 'Rossignolrennet_2020'
-USERNAME = 'emit'
-PASSWORD = 'time'
-connString = f'DRIVER={{SQL Server}};' \
-             f'SERVER={SERVER_NAME};' \
-             f'USERNAME={USERNAME};' \
-             f'PASSWORD={PASSWORD};' \
-             f'DATABASE={DATABASE_NAME}'
+defaultdb = dict( SERVER_NAME = 'GETAC\SQLEXPRESS', DATABASE_NAME = 'Rossignolrennet_2020', USERNAME = 'emit',
+    PASSWORD = 'time')
 
 class ConnectedReader(QThread, QWidget):
 
@@ -35,19 +28,35 @@ class ConnectedReader(QThread, QWidget):
             self.tag.emit(info['tag'])
 
 
+class SelectFromList(QWidget):
+    def __init__(self, selection_list):
+        super().__init__()
+        layout = QVBoxLayout()
+        selection = QComboBox()
+        self.setMinimumSize(200, 200)
+        selection.addItems(selection_list)
+        print(selection_list)
+        #self.setCentralWidget(selection)
+        self.setLayout(layout)
+
+
 class MainWindow(QMainWindow):
     unknown_tag = pyqtSignal(str)
     selected_runner = pyqtSignal(int, str)
 
     def __init__(self):
         super().__init__()
+        self.setMinimumSize(QSize(600, 40))
         menu = self.menuBar()
 
         database_menu = menu.addMenu("&Database")
         ECU_menu = menu.addMenu("&Brikkeleser")
         set_code_action = QAction("&Sett brikkeleserkode",self)
         set_code_action.triggered.connect(self.set_code)
+        select_database_action = QAction("&Velg database",self)
+        select_database_action.triggered.connect(self.select_database)
         ECU_menu.addAction(set_code_action)
+        database_menu.addAction(select_database_action)
 
         self.tag_label = QLabel()
         self.reader = ConnectedReader()
@@ -60,7 +69,9 @@ class MainWindow(QMainWindow):
         self.lookup_mapper = QDataWidgetMapper()
         self.change_model = QSqlTableModel()
         self.change_mapper = QDataWidgetMapper()
-
+        self.db = QSqlDatabase.addDatabase('QODBC')
+        self.current_db = defaultdb
+        self.connect_database()
         form = QFormLayout()
         layout = QVBoxLayout()
 
@@ -92,15 +103,23 @@ class MainWindow(QMainWindow):
         widget = QWidget()
         widget.setLayout(layout)
         self.setCentralWidget(widget)
-        # Open database
-        self.db = QSqlDatabase.addDatabase('QODBC')
-        self.db.setDatabaseName(connString)
-        if self.db.open():
-            print('connect to SQL Server successfully')
-        else:
-            print('connection failed')
 
         self.reader.start()
+
+    def connect_database(self):
+        # Open database
+        print(self.current_db)
+        connString = f"DRIVER={{SQL Server}};" \
+                     f"SERVER={self.current_db['SERVER_NAME']};" \
+                     f"USERNAME={self.current_db['USERNAME']};" \
+                     f"PASSWORD={self.current_db['PASSWORD']};" \
+                     f"DATABASE={self.current_db['DATABASE_NAME']}"
+
+        self.db.setDatabaseName(connString)
+        if self.db.open():
+            self.setWindowTitle(self.current_db['SERVER_NAME'] + " " +self.current_db['DATABASE_NAME'])
+        else:
+            print('connection failed')
 
     def lookup_tag(self, tag_string):
         qry = QSqlQuery(self.db)
@@ -162,6 +181,18 @@ class MainWindow(QMainWindow):
 
     def set_code(self):
         print('Write code to set ECU code')
+
+    def select_database(self):
+        query=QSqlQuery()
+        query.exec_('select name from sys.databases')
+        db_list = []
+        while query.next():
+            db_list.append(query.value(0))
+            print(query.value(0))
+        print(db_list)
+        selection = SelectFromList(db_list)
+        selection.show()
+        time.sleep(10)
 
 
 
