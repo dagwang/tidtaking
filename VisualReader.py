@@ -1,4 +1,5 @@
 import sys
+import json
 
 from PyQt5.QtGui import QStandardItemModel
 from PyQt5.QtSql import QSqlDatabase, QSqlQueryModel, QSqlQuery, QSqlTableModel
@@ -7,8 +8,10 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QDataWid
     QLineEdit, QPushButton, QHBoxLayout, QMessageBox, QInputDialog, QAction, QStatusBar, QComboBox
 from tag_reader import *
 
-defaultdb = dict( SERVER_NAME = 'GETAC\SQLEXPRESS', DATABASE_NAME = 'Rossignolrennet_2020', USERNAME = 'emit',
-    PASSWORD = 'time')
+#defaultdb = dict( SERVER_NAME = 'GETAC\SQLEXPRESS', DATABASE_NAME = 'Rossignolrennet_2020', USERNAME = 'emit',
+#    PASSWORD = 'time')
+# Driver={ODBC Driver 13 for SQL Server};Server=tcp:tider.database.windows.net,1433;Database=;Uid=tidtaker;Pwd={your_password_here};Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;
+
 
 class ConnectedReader(QThread, QWidget):
 
@@ -70,7 +73,8 @@ class MainWindow(QMainWindow):
         self.change_model = QSqlTableModel()
         self.change_mapper = QDataWidgetMapper()
         self.db = QSqlDatabase.addDatabase('QODBC')
-        self.current_db = defaultdb
+        with open('C:\\EMIT\\connection.json', 'r') as f:
+            self.current_db = json.load(f)
         self.connect_database()
         form = QFormLayout()
         layout = QVBoxLayout()
@@ -111,8 +115,8 @@ class MainWindow(QMainWindow):
         print(self.current_db)
         connString = f"DRIVER={{SQL Server}};" \
                      f"SERVER={self.current_db['SERVER_NAME']};" \
-                     f"USERNAME={self.current_db['USERNAME']};" \
-                     f"PASSWORD={self.current_db['PASSWORD']};" \
+                     f"UID={self.current_db['USERNAME']};" \
+                     f"PWD={self.current_db['PASSWORD']};" \
                      f"DATABASE={self.current_db['DATABASE_NAME']}"
 
         self.db.setDatabaseName(connString)
@@ -135,6 +139,7 @@ class MainWindow(QMainWindow):
     def select_runner(self, tag_string):
         print('tag:' + tag_string)
         input_dialog = QInputDialog(None)
+        input_dialog.setIntMaximum(2000)
         font = input_dialog.font()
         font.setPointSize(20)
         input_dialog.setFont(font)
